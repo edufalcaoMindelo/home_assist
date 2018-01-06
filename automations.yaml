@@ -1,0 +1,750 @@
+
+
+- alias: Notificação Lara Casa
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_lara
+    to: 'casa'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "Lara chegou a casa"
+     message: "A lara acabou de chegar a casa."
+     
+- alias: Notificação Disparo Alarme
+  trigger:
+    platform: state
+    entity_id: alarm_control_panel.house
+    to: 'triggered'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "DISPARO DE ALARME"
+     message: 'O Sensor {{ states[states.alarm_control_panel.house.attributes.changed_by.split(".")[0]][ states.alarm_control_panel.house.attributes.changed_by.split(".")[1]].name }} ficou ativo e disparou o alarme!'
+
+
+- alias: Notificação Lara Escola
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_lara
+    to: 'escola'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "Lara chegou à escola"
+     message: "A lara acabou de chegar à escola."
+- alias: Notificação Lara Saiu Escola
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_lara
+    from: 'escola'
+    to: 'not_home'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "Lara saiu da escola"
+     message: "A lara acabou de sair da escola."
+     
+- alias: Notificação Edu Casa
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_edu
+    to: 'casa'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "Eduardo chegou a casa"
+     message: "O Eduardo acabou de chegar a casa."
+     
+- alias: Notificação Edu Saiu Casa
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_edu
+    to: 'not_home'
+  action:
+    service: notify.mypushbullet
+    data_template:
+     title: "Eduardo saiu de casa"
+     message: "O Eduardo acabou de sair de casa."     
+     
+- alias: Ativa cenário chega casa noite
+  initial_state: False
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_edu
+    to: 'casa'
+  action:
+    service: scene.turn_on
+    entity_id: scene.chegar_a_casa_a_noite
+   
+- alias: Ativa portão dia
+  initial_state: False
+  trigger:
+    platform: state
+    entity_id: !secret device_tracker_edu
+    to: 'casa'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.portao
+    - service: scene.turn_off
+      entity_id: scene.chegar_a_casa_a_noite
+    
+- alias: "Chegada a casa noite"
+  trigger:
+    platform: sun
+    event: sunset
+  action:
+    - service: automation.turn_on
+      entity_id: automation.ativa_cenario_chega_casa_noite
+    - service: automation.turn_off
+      entity_id: automation.ativa_portao_dia
+      
+- alias: "Chegada a casa dia"
+  trigger:
+    platform: sun
+    event: sunrise
+  action:
+    - service: automation.turn_off
+      entity_id: automation.ativa_cenario_chega_casa_noite
+    - service: automation.turn_on
+      entity_id: automation.ativa_portao_dia
+      
+- alias: Ativa Automatismo chegada a casa
+  trigger:
+    platform: state
+    entity_id: input_boolean.chegada_casa_auto
+    to: 'on'
+  action:
+    service: automation.turn_on
+    entity_id:
+      - automation.chegada_a_casa_noite
+      - automation.chegada_a_casa_dia
+      
+- alias: Desativa Automatismo chegada a casa
+  trigger:
+    platform: state
+    entity_id: input_boolean.chegada_casa_auto
+    to: 'off'
+  action:
+    service: automation.turn_off
+    entity_id:
+      - automation.chegada_a_casa_noite
+      - automation.chegada_a_casa_dia
+      
+      
+      
+      
+- alias: Regista chegada de alguém
+  trigger:
+    - platform: state
+      entity_id: !secret device_tracker_edu
+      from: 'not_home'
+      to: 'casa'
+    - platform: state
+      entity_id: !secret device_tracker_lara
+      from: 'not_home'
+      to: 'casa'
+    - platform: state
+      entity_id: !secret device_tracker_lara
+      from: 'not_home'
+      to: 'casa'
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: >
+          {% if trigger.entity_id == '!secret device_tracker_edu' %}
+            input_select.eduardo_status_dropdown
+          {% elif trigger.entity_id == '!secret device_tracker_lara' %}
+            input_select.lara_status_dropdown
+          {% else %}
+            input_select.sara_status_dropdown
+          {% endif %}
+        option: acabou de chegar
+ 
+- alias: Regista em casa
+  trigger:
+    - platform: state
+      entity_id: input_select.eduardo_status_dropdown
+      to: 'acabou de chegar'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.lara_status_dropdown
+      to: 'acabou de chegar'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.sara_status_dropdown
+      to: 'acabou de chegar'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.eduardo_status_dropdown
+      from: 'acabou de sair'
+      to: 'acabou de chegar'
+    - platform: state
+      entity_id: input_select.lara_status_dropdown
+      from: 'acabou de sair'
+      to: 'acabou de chegar'
+    - platform: state
+      entity_id: input_select.sara_status_dropdown
+      from: 'acabou de sair'
+      to: 'acabou de chegar'
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: >
+          {% if trigger.entity_id == 'input_select.eduardo_status_dropdown' %}
+            input_select.eduardo_status_dropdown
+          {% elif trigger.entity_id == 'input_select.lara_status_dropdown' %}
+            input_select.lara_status_dropdown
+          {% else %}
+            input_select.sara_status_dropdown
+          {% endif %}
+        option: casa
+ 
+- alias: Regista acabou de sair
+  trigger:
+    - platform: state
+      entity_id: !secret device_tracker_edu
+      from: 'casa'
+      to: 'not_home'
+    - platform: state
+      entity_id: !secret device_tracker_lara
+      from: 'casa'
+      to: 'not_home'
+    - platform: state
+      entity_id: !secret device_tracker_lara
+      from: 'casa'
+      to: 'not_home'
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: >
+          {% if trigger.entity_id == '!secret device_tracker_edu' %}
+            input_select.eduardo_status_dropdown
+          {% elif trigger.entity_id == '!secret device_tracker_lara' %}
+            input_select.lara_status_dropdown
+          {% else %}
+            input_select.sara_status_dropdown
+          {% endif %}
+        option: acabou de sair
+ 
+- alias: Regista ausente
+  trigger:
+    - platform: state
+      entity_id: input_select.eduardo_status_dropdown
+      to: 'acabou de sair'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.lara_status_dropdown
+      to: 'acabou de sair'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_select.sara_status_dropdown
+      to: 'acabou de sair'
+      for:
+        minutes: 10
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: >
+          {% if trigger.entity_id == 'input_select.eduardo_status_dropdown' %}
+            input_select.eduardo_status_dropdown
+          {% elif trigger.entity_id == 'input_select.lara_status_dropdown' %}
+            input_select.lara_status_dropdown
+          {% else %}
+            input_select.sara_status_dropdown
+          {% endif %}
+        option: ausente
+ 
+- alias: Regista ausencia prolongada
+  trigger:
+    - platform: state
+      entity_id: input_select.eduardo_status_dropdown
+      to: 'ausente'
+      for:
+        hours: 24
+    - platform: state
+      entity_id: input_select.lara_status_dropdown
+      to: 'ausente'
+      for:
+        hours: 24
+    - platform: state
+      entity_id: input_select.sara_status_dropdown
+      to: 'ausente'
+      for:
+        hours: 24
+  action:
+    - service: input_select.select_option
+      data_template:
+        entity_id: >
+          {% if trigger.entity_id == 'input_select.eduardo_status_dropdown' %}
+            input_select.eduardo_status_dropdown
+          {% elif trigger.entity_id == 'input_select.lara_status_dropdown' %}
+            input_select.lara_status_dropdown
+          {% else %}
+            input_select.sara_status_dropdown
+          {% endif %}
+        option: ausência prolongada    
+      
+      
+- alias: 'Temporização luz garagem'
+  trigger:
+    platform: state
+    entity_id: switch.iluminacao_garagem
+    to: 'on'
+  action:
+    - delay: '00:{{ "%2d" | format(states("input_number.duracao_luz_garagem") | int) }}:00'
+    - service: homeassistant.turn_off
+      entity_id: switch.iluminacao_garagem
+      
+
+- alias: 'Ciclo Extra'
+  initial_state: True
+  trigger:
+    platform: state
+    entity_id: input_boolean.rega_extra
+    to: 'on'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.rega_frente
+    - delay: '00:{{ "%2d" | format(states("input_number.auto_heat1_duration") | int) }}:00'  
+    - service: homeassistant.turn_off
+      entity_id: 
+        - switch.rega_frente        
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.rega_traseiras
+    - delay: '00:{{ "%2d" | format(states("input_number.auto_heat1_duration") | int) }}:00'
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.rega_traseiras
+        - input_boolean.rega_extra
+           
+- alias: 'Rega Automática'
+  initial_state: True
+  trigger:
+    - platform: time
+      minutes: '/1'
+      seconds: 0
+  condition:
+    - condition: template
+      value_template: '{{(as_timestamp(now()) | timestamp_custom("%H:%M")) == states.sensor.auto_heat_time.state }}'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.rega_frente
+    - delay: '00:{{ "%2d" | format(states("input_number.auto_heat1_duration") | int) }}:00'  
+    - service: homeassistant.turn_off
+      entity_id: 
+        - switch.rega_frente        
+    - service: homeassistant.turn_on
+      entity_id:
+        - switch.rega_traseiras
+    - delay: '00:{{ "%2d" | format(states("input_number.auto_heat1_duration") | int) }}:00'
+    - service: homeassistant.turn_off
+      entity_id:
+        - switch.rega_traseiras
+        
+- alias: cm_estore_cozinha_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_cozinha_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.cozinha
+- alias: cm_estore_cozinha_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_cozinha_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.cozinha
+- alias: cm_estore_sala_dt_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_sala_dt_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.sala_1
+- alias: cm_estore_sala_dt_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_sala_dt_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.sala_1
+- alias: cm_estore_sala_eq_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_sala_eq_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.sala_2
+- alias: cm_estore_sala_eq_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_sala_eq_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.sala_2
+- alias: cm_estore_suite_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_suite_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.suite
+- alias: cm_estore_suite_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_suite_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.suite
+- alias: cm_estore_lara_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_lara_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.quarto_lara
+- alias: cm_estore_lara_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_lara_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.quarto_lara
+- alias: cm_estore_isa_UP
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_isa_up
+    to: 'on'
+  action:
+    service: cover.open_cover
+    entity_id: cover.quarto_isa
+- alias: cm_estore_isa_DW
+  trigger:
+    platform: state
+    entity_id: binary_sensor.estore_isa_dw
+    to: 'on'
+  action:
+    service: cover.close_cover
+    entity_id: cover.quarto_isa
+- alias: cm_iluminação_entrada_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_entrada
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_entrada
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_entrada
+- alias: cm_iluminação_entrada_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_entrada
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_entrada
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_entrada
+- alias: cm_iluminação_frente_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_frente
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_frente
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_frente
+- alias: cm_iluminação_frente_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_frente
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_frente
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_frente
+- alias: cm_iluminação_garagem_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_garagem
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_garagem
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_garagem
+- alias: cm_iluminação_garagem_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_garagem
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_garagem
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_garagem
+- alias: cm_iluminação_deck_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_deck
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_deck
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_deck
+- alias: cm_iluminação_deck_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_deck
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_deck
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_deck
+- alias: cm_iluminação_barbeque_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_barbeque
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_churrasqueira
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_churrasqueira
+- alias: cm_iluminação_barbeque_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_barbeque
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_churrasqueira
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_churrasqueira
+- alias: cm_iluminação_jardim_ON
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_jardim
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_jardim
+    state: 'off'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.iluminacao_jardim
+- alias: cm_iluminação_jardim_OFF
+  trigger:
+    platform: state
+    entity_id: binary_sensor.iluminacao_jardim
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: switch.iluminacao_jardim
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.iluminacao_jardim
+# - alias: Liga a iluminação da entrada
+  # trigger:
+    # platform: state
+    # entity_id: binary_sensor.porta_entrada
+    # to: 'on'
+  # action:
+    # service: homeassistant.turn_on
+    # entity_id: switch.iluminacao_jardim
+- alias: Ativa alarme total
+  trigger:
+    platform: state
+    entity_id: alarm_control_panel.seguranca
+    to: 'armed_away'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.alarme_away
+- alias: Ativa alarme parcial
+  trigger:
+    platform: state
+    entity_id: alarm_control_panel.seguranca
+    to: 'armed_home'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.alarme_home
+- alias: Desativa alarme
+  trigger:
+    platform: state
+    entity_id: alarm_control_panel.seguranca
+    to: 'disarmed'
+  action:
+    service: homeassistant.turn_off
+    entity_id: 
+      - switch.alarme_away
+      - switch.alarme_home
+      
+- alias: 'Dispara alarme away'
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.im_cozinha
+      to: 'on'
+    - platform: state
+      entity_id: binary_sensor.im_entrada
+      to: 'on'
+    - platform: state
+      entity_id: binary_sensor.im_sala
+      to: 'on'
+    - platform: state
+      entity_id: binary_sensor.im_suite
+      to: 'on'
+  condition:
+    - condition: state
+      entity_id: alarm_control_panel.seguranca
+      state: armed_away
+  action:
+    service: alarm_control_panel.alarm_trigger
+    entity_id: alarm_control_panel.seguranca
+    
+- alias: 'Alarme Total'
+  trigger:
+    platform: state
+    entity_id: input_boolean.alarme_total
+    to: 'on'
+  action:
+    service: alarm_control_panel.alarm_arm_away
+    entity_id: alarm_control_panel.house
+    # service: input_select.select_option
+    # data_template:
+      # entity_id: input_select.alarme_status         
+      # option: ligado
+      
+- alias: 'Alarme Parcial'
+  trigger:
+    platform: state
+    entity_id: input_boolean.alarme_parcial
+    to: 'on'
+  action:
+    service: alarm_control_panel.alarm_arm_home
+    entity_id: alarm_control_panel.house
+      
+      
+- alias: 'Alarme Desligado'
+  trigger:
+    - platform: state
+      entity_id: input_boolean.alarme_total
+      to: 'off'
+    - platform: state
+      entity_id: input_boolean.alarme_parcial
+      to: 'off'
+  action:
+    service: alarm_control_panel.alarm_disarm
+    entity_id: alarm_control_panel.house
+      
+  
+      
+      
+
+ 
+- alias: "Abrir de Manhã"
+  trigger:
+    platform: sun
+    event: sunrise
+#    offset: '+00:30:00'
+  condition:
+    condition: time
+    weekday:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
+  action:
+    - service: cover.open_cover
+      entity_id: cover.cover_group
+    - delay: '00:00:40'
+    - service: cover.stop_cover
+      entity_id: cover.cover_group
+- alias: "Fechar à Noite"
+  trigger:
+    platform: sun
+    event: sunset
+    offset: '+00:30:00'
+  action:
+    - service: cover.close_cover
+      entity_id: cover.cover_group
+    - delay: '00:00:40'
+    - service: cover.stop_cover
+      entity_id: cover.cover_group
+- alias: "Fechar Parcial"
+  trigger:
+    platform: state
+    entity_id: input_boolean.semi_estores
+    to: 'on'
+  action:
+    - service: cover.close_cover
+      entity_id: cover.cover_group
+    - delay: '00:00:30'
+    - service: cover.open_cover
+      entity_id: cover.cover_group
+    - delay: '00:00:05'
+    - service: cover.stop_cover
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.semi_estores
+- alias: "Trinco Porta"
+  trigger:
+    platform: state
+    entity_id: switch.porta
+    to: 'on'
+  action:
+    - delay: '00:00:03'
+    - service: homeassistant.turn_off
+      entity_id: switch.porta
+- alias: "Abertura Portão"
+  trigger:
+    platform: state
+    entity_id: switch.portao
+    to: 'on'
+  action:
+    - delay: '00:00:01'
+    - service: homeassistant.turn_off
+      entity_id: switch.portao

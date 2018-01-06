@@ -1,0 +1,652 @@
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret latitude
+  longitude: !secret longitude
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 29
+  # metric for Metric, imperial for Imperial
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Europe/Lisbon
+  # Customization file
+  customize: !include customize.yaml
+# Show links to resources in log and frontend
+device_tracker:
+  - platform: locative
+#  - platform: gpslogger
+
+# Enables the frontend
+frontend:
+
+#restore_states:
+
+weather:
+  - platform: yweather
+
+# Enables configuration UI
+config:
+
+mqtt:
+
+
+notify:
+  - name: mypushbullet
+    platform: pushbullet
+    api_key: !secret notify_api_edu
+
+http:
+  # Uncomment this to add a password (recommended!)
+  api_password: !secret http_password
+  # Uncomment this if you are using SSL/TLS, running in Docker container, etc.
+  # base_url: example.duckdns.org:8123
+
+# Checks for available updates
+# Note: This component will send some information about your system to
+# the developers to assist with development of Home Assistant.
+# For more information, please see:
+# https://home-assistant.io/blog/2016/10/25/explaining-the-updater/
+updater:
+  # Optional, allows Home Assistant developers to focus on popular components.
+  # include_used_components: true
+
+# Discover some devices automatically
+discovery:
+
+# Allows you to issue voice commands from the frontend in enabled browsers
+conversation:
+
+# Enables support for tracking state changes over time
+history:
+
+# View all events in a logbook
+logbook:
+
+
+media_player:
+  - platform: spotify
+    client_id: !secret spotify_client
+    client_secret: !secret spotify_secret
+    # aliases:
+        # abc123def456: 'Jardim'
+        # 9183abas000: 'Sala'
+  
+
+# Track the sun
+sun:
+ friendly_name: Sol
+
+binary_sensor:
+  - platform: raspihats
+    i2c_hats:
+      - board: DI6acDQ6rly
+        address: 0x60
+        channels:
+          - index: 0
+            name: Iluminação Jardim
+          - index: 1
+            name: IM Cozinha
+            device_class: opening
+          - index: 2
+            name: IM Entrada
+            device_class: opening
+          - index: 3
+            name: IM Sala
+            device_class: opening
+          - index: 4
+            name: IM Suite
+            device_class: opening
+          - index: 5
+            name: Estore Sala EQ DW
+            device_class: opening
+      - board: DI16ac
+        address: 0x40
+        channels:
+          - index: 0
+            name: Estore Cozinha UP
+          - index: 1
+            name: Estore Cozinha DW
+          - index: 2
+            name: Estore Sala DT UP
+          - index: 3
+            name: Estore Sala DT DW
+          - index: 4
+            name: Estore Sala EQ UP
+          - index: 5
+            name: Estore Suite UP
+          - index: 6
+            name: Estore Suite DW
+          - index: 7
+            name: Estore Lara UP
+          - index: 8
+            name: Estore Lara DW
+          - index: 9
+            name: Estore Isa UP
+          - index: 10
+            name: Estore Isa DW
+          - index: 11
+            name: Iluminação Frente
+          - index: 12
+            name: Iluminação Garagem
+          - index: 13
+            name: Iluminação Entrada
+          - index: 14
+            name: Iluminação Barbeque
+          - index: 15
+            name: Iluminação Deck  
+
+            
+alarm_control_panel: !include alarm.yaml
+panel_custom:
+    - name: alarm
+      sidebar_title: Alarme
+      sidebar_icon: mdi:security-home
+      config:
+          alarmid: alarm_control_panel.house
+
+    
+    
+switch:
+  - platform: raspihats
+    i2c_hats:
+      - board: DI6acDQ6rly
+        address: 0x60
+        channels:
+          - index: 0
+            name: Portão
+          - index: 1
+            name: Porta
+          - index: 2
+            name: Alarme Away
+          - index: 3
+            name: Alarme Home
+          - index: 4
+            name: Iluminação Entrada
+          - index: 5
+            name: Válvula Corte Água
+      - board: DQ10rly
+        address: 0x50
+        channels:
+          - index: 0
+            name: Persiana Cozinha UP
+          - index: 1
+            name: Persiana Cozinha DOWN
+          - index: 2
+            name: Persiana Sala 1 UP
+          - index: 3
+            name: Persiana Sala 1 DOWN
+          - index: 4
+            name: Persiana Sala 2 UP
+          - index: 5
+            name: Persiana Sala 2 DOWN
+          - index: 6
+            name: Persiana Suite UP
+          - index: 7
+            name: Persiana Suite DOWN
+          - index: 8
+            name: Persiana Lara UP
+          - index: 9
+            name: Persiana Lara DOWN
+      - board: DQ10rly
+        address: 0x51
+        channels:
+          - index: 0
+            name: Persiana Isabela UP
+          - index: 1
+            name: Persiana Isabela DOWN
+          - index: 2
+            name: Resistência Acumulador 
+          - index: 3
+            name: Rega Frente
+          - index: 4
+            name: Rega Traseiras
+          - index: 5
+            name: Iluminação Frente
+          - index: 6
+            name: Iluminação Garagem
+          - index: 7
+            name: Iluminação Churrasqueira
+          - index: 8
+            name: Iluminação Deck
+          - index: 9
+            name: Iluminação Jardim
+
+
+cover:
+  - platform: template
+    covers:
+      cover_group:
+        friendly_name: "Todos"
+        open_cover:
+          service: script.cover_group
+          data:
+            modus: 'open'
+        close_cover:
+          service: script.cover_group
+          data:
+            modus: 'close'
+        stop_cover:
+          service: script.cover_group
+          data:
+            modus: 'stop'
+        set_cover_position:
+          service: script.cover_group_position
+          data_template:
+            position: "{{position}}"
+        value_template: "{{is_state('sensor.cover_group', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.cover_group', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+        entity_id:
+          - cover.cozinha
+          - cover.sala_1
+          - cover.sala_2
+          - cover.suite
+          - cover.quarto_isa
+          - cover.quarto_lara
+  - platform: template
+    covers:
+      cozinha:
+#        position_template: 50
+        friendly_name: "Cozinha"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_cozinha_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_cozinha_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_cozinha_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_cozinha_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_cozinha_up
+                - switch.persiana_cozinha_down
+  - platform: template
+    covers:
+      sala_1:
+#        position_template: 50
+        friendly_name: "Sala Direita"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_sala_1_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_sala_1_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_sala_1_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_sala_1_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_sala_1_up
+                - switch.persiana_sala_1_down
+  - platform: template
+    covers:
+      sala_2:
+#        position_template: 50
+        friendly_name: "Sala Esquerda"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_sala_2_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_sala_2_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_sala_2_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_sala_2_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_sala_2_up
+                - switch.persiana_sala_2_down
+  - platform: template
+    covers:
+      suite:
+#        position_template: 50
+        friendly_name: "Suite"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_suite_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_suite_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_suite_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_suite_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_suite_up
+                - switch.persiana_suite_down
+  - platform: template
+    covers:
+      quarto_lara:
+#        position_template: 50
+        friendly_name: "Quarto Lara"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_lara_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_lara_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_lara_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_lara_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_lara_up
+                - switch.persiana_lara_down
+  - platform: template
+    covers:
+      quarto_isa:
+#        position_template: 50
+        friendly_name: "Quarto Isabela"
+        open_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_isabela_down
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_isabela_up
+        close_cover:
+          - service: switch.turn_off
+            data:
+                entity_id: 
+                    - switch.persiana_isabela_up
+          - service: switch.turn_on
+            data:
+                entity_id:
+                    - switch.persiana_isabela_down
+        stop_cover:
+          service: switch.turn_off
+          data:
+            entity_id: 
+                - switch.persiana_isabela_up
+                - switch.persiana_isabela_down
+input_boolean:
+  chegada_casa_auto:
+    name: Chegada a casa Auto
+    icon: mdi:home-map-marker
+  semi_estores:
+    name: Abertura Parcial
+    initial: off
+    icon: mdi:inbox-arrow-up
+
+  rega_extra:
+    name: Ciclo Extra
+    initial: off
+    icon: mdi:plus-one
+    
+  alarme_total:
+    name: Alarme Total
+    icon: mdi:shield
+  alarme_parcial:
+    name: Alarme Parcial
+    icon: mdi:shield-half-full
+    
+    
+input_select:
+
+  alarme_status:
+    name: Alarme Status
+    options:
+      - ligado
+      - parcial
+      - desligado
+#    initial: desligado
+
+  eduardo_status_dropdown:
+    name: Eduardo
+    options:
+      - casa
+      - acabou de chegar
+      - acabou de sair
+      - ausente
+      - ausência prolongada
+    initial: casa
+    
+  sara_status_dropdown:
+    name: Sara
+    options:
+      - casa
+      - acabou de chegar
+      - acabou de sair
+      - ausente
+      - ausência prolongada
+    initial: casa
+    
+  lara_status_dropdown:
+    name: Lara
+    options:
+      - casa
+      - acabou de chegar
+      - acabou de sair
+      - ausente
+      - ausência prolongada
+    initial: casa
+    
+    
+    
+input_number:
+  auto_heat_hour:
+    name: Hora
+    icon: mdi:timer
+    initial: 23
+    min: 0
+    max: 23
+    step: 1
+  auto_heat_min:
+    name: Minutos
+    icon: mdi:timer
+    initial: 30
+    min: 0
+    max: 55
+    step: 5
+  auto_heat1_duration:
+    name: Duração
+    icon: mdi:timer
+    initial: 10
+    min: 0
+    max: 60
+    step: 5
+  duracao_luz_garagem:
+    name: Duração
+    icon: mdi:timer
+    initial: 2
+    min: 1
+    max: 20
+    step: 1
+sensor:
+  - platform: darksky
+    api_key: !secret darksky_api
+    monitored_conditions:
+        - summary
+        - icon
+        - apparent_temperature
+
+
+
+  - platform: template
+    sensors:
+      timer_luz_garagem:
+        friendly_name: 'Temporizador'
+        value_template: '{{ "%2d minutos" | format(states("input_number.duracao_luz_garagem") | int) }}'
+
+  - platform: time_date
+    display_options:
+      - 'time'
+      - 'date'
+      # - 'date_time'
+      # - 'time_date'
+      # - 'time_utc'
+      # - 'beat'
+      
+  - platform: template
+    sensors:
+      intrusao:
+        friendly_name: "Alarme Intrusão"
+       # view: true
+        value_template: >-
+          {% if is_state('input_boolean.alarme_total', 'on') %}
+            Ligado
+          {% elif is_state('input_boolean.alarme_parcial', 'on') %}
+            Parcial
+          {% else %}
+            OFF
+          {% endif %}
+        icon_template: >-
+          {% if is_state('input_boolean.alarme_total', 'on') %}
+            mdi:shield
+          {% elif is_state('input_boolean.alarme_parcial', 'on') %} 
+            mdi:shield-half-full
+          {% elif is_state('input_boolean.alarme_total', 'off') %} 
+            mdi:shield-outline
+          {% elif is_state('input_boolean.alarme_parcial', 'off') %} 
+            mdi:shield-outline
+          {% endif %}
+      
+  - platform: template
+    sensors:
+      eduardo_status:
+        value_template: '{{ states.input_select.eduardo_status_dropdown.state }}'
+        friendly_name: 'Eduardo'
+      sara_status:
+        value_template: '{{ states.input_select.sara_status_dropdown.state }}'
+        friendly_name: 'Sara'
+      lara_status:
+        value_template: '{{ states.input_select.lara_status_dropdown.state }}'
+        friendly_name: 'Lara'
+ 
+  - platform: template
+    sensors:
+      auto_heat_time:
+        friendly_name: 'Hora Agendada'
+        value_template: '{{ "%0.02d:%0.02d" | format(states("input_number.auto_heat_hour") | int, states("input_number.auto_heat_min") | int) }}'
+      auto_heat_duration:
+        friendly_name: 'Duração'
+        value_template: '{{ "%2d minutos" | format(states("input_number.auto_heat1_duration") | int) }}'    
+  - platform: yr
+    name: Weather
+#    forecast: 5
+    monitored_conditions:
+      - temperature
+      - symbol
+      - precipitation
+      - humidity
+  - platform: yweather
+    name: Hoje
+    monitored_conditions:
+      - weather
+      - temperature
+      - temp_min
+      - temp_max
+      
+  - platform: history_stats
+    name: Tempo de funcionamento esta semana
+    entity_id: switch.resistencia_acumulador
+    state: 'on'
+    type: time
+    start: '{{ as_timestamp( now().replace(hour=0).replace(minute=0).replace(second=0) ) - now().weekday() * 86400 }}'
+    end: '{{ now() }}'      
+      
+  - platform: history_stats
+    name: Tempo de funcionamento últimos 30 dias
+    entity_id: switch.resistencia_acumulador
+    state: 'on'
+    start: '{{ as_timestamp(now()) - 30 * 24 * 3600 }}'
+    end: '{{ as_timestamp(now()) }}'
+
+    
+  - platform: history_stats
+    name: Tempo de funcionamento últimos 365 dias
+    entity_id: switch.resistencia_acumulador
+    state: 'on'
+    start: '{{ as_timestamp(now()) - 365 * 24 * 3600 }}'
+    end: '{{ as_timestamp(now()) }}'
+   
+  - platform: statistics
+    entity_id: sensor.weather_temperature
+    max_age:
+      minutes: 720
+scene:
+  - name: Chegar a casa à noite
+    entities:
+      switch.iluminacao_entrada: on
+      switch.iluminacao_garagem: on
+      switch.portao: on
+  - name: Churrasco à noite
+    entities:
+      switch.iluminacao_churrasqueira: on
+      switch.iluminacao_deck: on
+      switch.iluminacao_jardim: on
+      
+      
+
+ 
+ 
+# Text to speech
+tts:
+  - platform: google
+
+group: !include groups.yaml
+automation: !include automations.yaml
+script: !include scripts.yaml

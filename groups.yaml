@@ -1,0 +1,224 @@
+default_view:
+#Início:
+    name: Inicio
+
+    view: yes
+    entities:
+        - alarm_control_panel.house
+        - sun.sun
+        - group.entradas
+        - group.estores
+        - group.cenarios
+        - group.people_status
+        - group.exterior
+        - alarm_control_panel.seguranca
+        - sensor.weather_temperature
+        - sensor.weather_precipitation
+
+Tab_Security:
+    name: Segurança
+    view: yes
+    entities:
+        - alarm_control_panel.house
+ #       - sensor.intrusao
+        - group.controlo_alarme
+        - group.portas
+        - switch.valvula_corte_agua
+#        - alarm_control_panel.seguranca
+#        - alarm_control_panel.house
+        
+Tab_CCTV:
+    name: CCTV
+    view: yes
+    entities:
+        - group.cctv
+Tab_Interior:
+    name: Interior
+    view: yes
+    entities:
+        - group.estores
+        - group.varios
+Tab_Exterior:
+    name: Exterior
+    view: yes
+    entities:
+        - group.exterior
+        - group.rega
+        
+Tab_Multimedia:
+    name: Multimédia
+    view: yes
+    entities:
+        - media_player.spotify
+        
+Rega:
+    name: Rega
+    view: yes
+    control: hidden
+    entities:
+        - group.rega_program
+#        - group.controlo
+        - group.rega_manual
+        - sensor.date__time 
+        
+Tab_Estatisticas:
+    name: Estatísticas
+    view: yes
+    entities:
+        - group.stats_meteorologia
+        - group.stats_acumulador        
+
+stats_meteorologia:
+    name: Meteorologia
+    entities:
+        - sensor.stats_mean
+        
+Tab_Automação:
+    name: Automação
+    view: yes
+    entities:
+          - group.auto_luz_garagem
+          - group.automatismos
+          - group.notificacoes
+          
+        
+people_status:
+  name: Presenças
+  entities:
+    - sensor.eduardo_status
+    - sensor.sara_status
+    - sensor.lara_status
+ 
+stats_acumulador:
+  name: Histórico consumos elétricos AQS
+  entities:
+    - sensor.tempo_de_funcionamento_esta_semana
+    - sensor.tempo_de_funcionamento_ultimos_30_dias
+    - sensor.tempo_de_funcionamento_ultimos_365_dias    
+
+auto_luz_garagem:
+  name: Luz da Garagem
+  entities:
+    - input_number.duracao_luz_garagem
+    - sensor.timer_luz_garagem
+    - automation.temporizacao_luz_garagem
+    
+controlo_alarme:
+  name: Alarme Intrusão
+  entities:
+    - input_boolean.alarme_total
+    - input_boolean.alarme_parcial
+ #   - alarm_control_panel.house    
+        
+Automatismos:
+    name: Automatismos
+    entities:
+        - input_boolean.chegada_casa_auto
+        
+Notificacoes:
+    name: Notificações
+    entities:
+        - automation.notificacao_lara_casa
+ #       - automation.notificacao_lara_escola
+Cenarios:
+    name: Cenários
+    entities:
+        - scene.chegar_a_casa_a_noite
+        - scene.churrasco_a_noite
+Entradas:
+    name: Entradas
+    control: hidden
+    entities:
+        - switch.porta
+        - switch.portao
+        
+Vários:
+    name: Vários
+    control: hidden
+    entities:
+        - switch.resistencia_acumulador
+
+Portas:
+    name: Estado das Portas
+    entities:
+        - binary_sensor.im_entrada
+        - binary_sensor.im_cozinha
+        - binary_sensor.im_sala
+        - binary_sensor.im_suite
+        - binary_sensor.im_lara
+Sala:
+    name: Sala
+    control: hidden
+    entities:
+        - switch.persiana_sala_1_down
+        - switch.persiana_sala_1_up
+        - switch.persiana_sala_2_down
+        - switch.persiana_sala_2_up
+
+Estores:
+    name: Estores
+    control: hidden
+    entities:
+        - input_boolean.semi_estores
+        - cover.cover_group
+        - automation.abrir_de_manha
+        - automation.fechar_a_noite
+        - cover.cozinha
+        - cover.sala_1
+        - cover.sala_2
+        - cover.suite
+        - cover.quarto_isa
+        - cover.quarto_lara
+Suite:
+    name: Suite
+    control: hidden
+    entities:
+        - switch.persiana_suite_down
+        - switch.persiana_suite_up
+Quarto_lara:
+    name: Quarto Lara
+    control: hidden
+    entities:
+        - switch.persiana_lara_down
+        - switch.persiana_lara_up
+Quarto_isa:
+    name: Quarto Isabela
+    control: hidden
+    entities:
+        - switch.persiana_isabela_down
+        - switch.persiana_isabela_up
+Exterior:
+    name: Iluminação Exterior
+    entities:
+        - switch.iluminacao_entrada
+        - switch.iluminacao_churrasqueira
+        - switch.iluminacao_deck
+        - switch.iluminacao_frente
+        - switch.iluminacao_garagem
+        - switch.iluminacao_jardim
+
+Rega_program:
+    name: Programação Rega
+    control: hidden
+    entities:
+        - automation.rega_automatica
+        - input_number.auto_heat_hour
+        - input_number.auto_heat_min
+        - sensor.auto_heat_time
+        - input_boolean.rega_extra        
+        - input_number.auto_heat1_duration
+        - sensor.auto_heat_duration
+Rega_Manual:
+    name: Manual
+    entities:
+        - switch.rega_frente
+        - switch.rega_traseiras
+Meteorologia:
+    name: Meteorologia
+#    view: yes
+    entities:
+        - sensor.hoje_condition
+        - sensor.hoje_temperature
+        - sensor.hoje_temperature_max
+        - sensor.hoje_temperature_min
+        - weather.yweather

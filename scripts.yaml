@@ -1,0 +1,23 @@
+cover_group:
+  sequence:
+  - data:
+      entity_id:
+        - cover.cozinha
+        - cover.sala_1
+        - cover.sala_2
+        - cover.suite
+        - cover.quarto_isa
+        - cover.quarto_lara
+    service_template: cover.{{modus}}_cover
+cover_group_position:
+   sequence:
+   - service: cover.set_cover_position
+     data_template:
+       entity_id:
+        - cover.cozinha
+        - cover.sala_1
+        - cover.sala_2
+        - cover.suite
+        - cover.quarto_isa
+        - cover.quarto_lara
+       position: "{{position}}"
